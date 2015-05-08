@@ -1,4 +1,7 @@
 Revision history for Date::Utils::Bahai
 
+0.02  Fri May 08 10:25:00 2015
+      - Added unit test script t/01-date-utils-bahai.t file.
+
 0.01  Thu Apr 23 23:00:00 2015
       - First version, released.
