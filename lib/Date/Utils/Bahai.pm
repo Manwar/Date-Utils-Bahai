@@ -1,6 +1,6 @@
 package Date::Utils::Bahai;
 
-$Date::Utils::Bahai::VERSION = '0.02';
+$Date::Utils::Bahai::VERSION = '0.03';
 
 =head1 NAME
 
@@ -8,13 +8,14 @@ Date::Utils::Bahai - Bahai date specific routines as Moo Role.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
 use 5.006;
 use Data::Dumper;
 use POSIX qw/floor/;
+use Astro::Utils;
 
 use Moo::Role;
 use namespace::clean;
@@ -98,7 +99,9 @@ sub bahai_to_julian {
                  (19  * ($cycle - 1)) +
                  ($year - 1) + $g_year;
 
-    return $self->gregorian_to_julian($gy, 3, 20)
+    my ($gm, $gd) = _vernal_equinox_month_day($gy);
+
+    return $self->gregorian_to_julian($gy, $gm, $gd)
            +
            (19 * ($month - 1))
            +
@@ -122,7 +125,8 @@ sub julian_to_bahai {
     my $start_year     = ($self->julian_to_gregorian($self->bahai_epoch))[0];
 
     my $j1 = $self->gregorian_to_julian($gregorian_year, 1, 1);
-    my $j2 = $self->gregorian_to_julian($gregorian_year, 3, 20);
+    my ($gm, $gd) = _vernal_equinox_month_day($gregorian_year);
+    my $j2 = $self->gregorian_to_julian($gregorian_year, $gm, $gd);
 
     my $bahai_year = $gregorian_year - ($start_year + ((($j1 <= $julian_date) && ($julian_date <= $j2)) ? 1 : 0));
     my ($major, $cycle, $year) = $self->get_major_cycle_year($bahai_year);
@@ -176,6 +180,42 @@ sub validate_day {
 
     die ("ERROR: Invalid day [$day].\n")
         unless (defined($day) && ($day =~ /^\d{1,2}$/) && ($day >= 1) && ($day <= 19));
+}
+
+#
+#
+# PRIVATE METHODS
+
+sub _vernal_equinox_month_day {
+    my ($year) = @_;
+
+    # Source: Wikipedia
+    # In 2014, the Universal House of Justice selected  Tehran, the birthplace of
+    # Baha'u'lláh, as the location to which the date of  the vernal equinox is to
+    # be fixed, thereby "unlocking" the Badi calendar from the Gregorian calendar.
+    # For determining  the dates,  astronomical  tables from reliable sources are
+    # used.
+    # In  the  same  message  the  Universal  House  of  Justice decided that the
+    # birthdays  of  the Bab and Baha'u'lláh will be celebrated on "the first and
+    # the  second  day  following  the  occurrence  of  the eighth new moon after
+    # Naw-Ruz"  (also with the use of astronomical tables) and fixed the dates of
+    # the Bahaí Holy Days in the Baha'í calendar, standardizing dates for Baha'ís
+    # worldwide. These changes came into effect as of sunset on 20 March 2015.The
+    # changes  take effect from the next Bahai New Year, from sunset on March 20,
+    # 2015.
+
+    my $month = 3;
+    my $day   = 20;
+
+    if ($year >= 2015) {
+        my $equinox_date = calculate_equinox('mar', 'utc', $year);
+        if ($equinox_date =~ /\d{4}\-(\d{2})\-(\d{2})\s/) {
+            $month = $1;
+            $day   = $2;
+        }
+    }
+
+    return ($month, $day);
 }
 
 =head1 AUTHOR

@@ -22,6 +22,7 @@ WriteMakefile(
     PREREQ_PM => {
         'Moo::Role'        => 0,
         'namespace::clean' => 0,
+        'Astro::Utils'     => 0,
         'Date::Utils'      => '0.07',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
